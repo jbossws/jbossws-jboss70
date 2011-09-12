@@ -82,7 +82,7 @@ public final class ASHelper {
      * @return true if JAXWS JSE, JAXRPC JSE, JAXWS EJB or JAXRPC EJB deployment, false otherwise.
      */
     public static boolean isWebServiceDeployment(final DeploymentUnit unit) {
-        return ASHelper.getOptionalAttachment(unit, WSAttachmentKeys.DEPLOYMENT_TYPE_KEY) != null;
+        return getOptionalAttachment(unit, WSAttachmentKeys.DEPLOYMENT_KEY) != null;
     }
 
     /**
@@ -92,7 +92,7 @@ public final class ASHelper {
      * @return list of JAXWS servlets meta data
      */
     public static List<ServletMetaData> getJaxwsServlets(final DeploymentUnit unit) {
-        return ASHelper.getWebServiceServlets(unit, true);
+        return getWebServiceServlets(unit, true);
     }
 
     /**
@@ -102,7 +102,7 @@ public final class ASHelper {
      * @return list of JAXRPC servlets meta data
      */
     public static List<ServletMetaData> getJaxrpcServlets(final DeploymentUnit unit) {
-        return ASHelper.getWebServiceServlets(unit, false);
+        return getWebServiceServlets(unit, false);
     }
 
     /**
@@ -112,7 +112,7 @@ public final class ASHelper {
      * @return list of JAXWS EJBs meta data
      */
     public static List<WebServiceDeclaration> getJaxwsEjbs(final DeploymentUnit unit) {
-        final WebServiceDeployment wsDeployment = ASHelper.getRequiredAttachment(unit, WSAttachmentKeys.WEBSERVICE_DEPLOYMENT_KEY);
+        final WebServiceDeployment wsDeployment = getRequiredAttachment(unit, WSAttachmentKeys.WEBSERVICE_DEPLOYMENT_KEY);
 
         return Collections.unmodifiableList(wsDeployment.getServiceEndpoints());
     }
@@ -158,7 +158,7 @@ public final class ASHelper {
     public static <A> A getRequiredAttachment(final DeploymentUnit unit, final AttachmentKey<A> key) {
         final A value = unit.getAttachment(key);
         if (value == null) {
-            ASHelper.LOGGER.error("Cannot find attachment in deployment unit: " + key);
+            LOGGER.error("Cannot find attachment in deployment unit: " + key);
             throw new IllegalStateException();
         }
 
@@ -185,7 +185,7 @@ public final class ASHelper {
      * @return true if contains attachment, false otherwise
      */
     public static boolean hasAttachment(final DeploymentUnit unit, final AttachmentKey<?> key) {
-        return ASHelper.getOptionalAttachment(unit, key) != null;
+        return getOptionalAttachment(unit, key) != null;
     }
 
     /**
@@ -198,7 +198,7 @@ public final class ASHelper {
             final WebserviceDescriptionsMetaData wsDescriptionsMD) {
         if (wsDescriptionsMD != null) {
             if (wsDescriptionsMD.size() > 1) {
-                ASHelper.LOGGER.warn("Multiple <webservice-description> elements not supported");
+                LOGGER.warn("Multiple <webservice-description> elements not supported");
             }
 
             if (wsDescriptionsMD.size() > 0) {
@@ -218,7 +218,7 @@ public final class ASHelper {
      */
     private static List<ServletMetaData> getWebServiceServlets(final DeploymentUnit unit, final boolean jaxws) {
         final JBossWebMetaData jbossWebMD = getJBossWebMetaData(unit);
-        final CompositeIndex compositeIndex = ASHelper.getRequiredAttachment(unit, Attachments.COMPOSITE_ANNOTATION_INDEX);
+        final CompositeIndex compositeIndex = getRequiredAttachment(unit, Attachments.COMPOSITE_ANNOTATION_INDEX);
         return selectWebServiceServlets(compositeIndex, jbossWebMD.getServlets(), jaxws);
     }
 
@@ -249,7 +249,7 @@ public final class ASHelper {
     }
 
     private static boolean isWebserviceEndpoint(final ServletMetaData servletMD, final CompositeIndex index) {
-        final String endpointClassName = ASHelper.getEndpointName(servletMD);
+        final String endpointClassName = getEndpointName(servletMD);
         if (isJSP(endpointClassName)) return false;
         final DotName endpointDotName = DotName.createSimple(endpointClassName);
         final ClassInfo endpointClassInfo = index.getClassByName(endpointDotName);
@@ -275,7 +275,7 @@ public final class ASHelper {
      * @return the JBossWebMetaData or null if either that or the parent WarMetaData are not found.
      */
     public static JBossWebMetaData getJBossWebMetaData(final DeploymentUnit unit) {
-        final WarMetaData warMetaData = ASHelper.getOptionalAttachment(unit, WarMetaData.ATTACHMENT_KEY);
+        final WarMetaData warMetaData = getOptionalAttachment(unit, WarMetaData.ATTACHMENT_KEY);
         JBossWebMetaData result = null;
         if (warMetaData != null) {
             result = warMetaData.getMergedJBossWebMetaData();
@@ -287,7 +287,68 @@ public final class ASHelper {
     }
 
     public static List<AnnotationInstance> getAnnotations(final DeploymentUnit unit, final DotName annotation) {
-       final CompositeIndex compositeIndex = ASHelper.getRequiredAttachment(unit, Attachments.COMPOSITE_ANNOTATION_INDEX);
+       final CompositeIndex compositeIndex = getRequiredAttachment(unit, Attachments.COMPOSITE_ANNOTATION_INDEX);
        return compositeIndex.getAnnotations(annotation);
     }
+
+    /**
+     * Returns true if JAXRPC EJB deployment is detected.
+     *
+     * @param unit deployment unit
+     * @return true if JAXRPC EJB, false otherwise
+     */
+    public static boolean isJaxrpcEjbDeployment(final DeploymentUnit unit) {
+        //TODO
+//        final boolean hasWebservicesMD = hasAttachment(unit, AttachmentKeys.WEBSERVICES_METADATA_KEY);
+//        final boolean hasJBossMD = unit.getAllMetaData(JBossMetaData.class).size() > 0;
+//
+//        return hasWebservicesMD && hasJBossMD;
+        return false;
+    }
+
+    /**
+     * Returns true if JAXRPC JSE deployment is detected.
+     *
+     * @param unit deployment unit
+     * @return true if JAXRPC JSE, false otherwise
+     */
+    public static boolean isJaxrpcJseDeployment(final DeploymentUnit unit) {
+        final boolean hasWebservicesMD = hasAttachment(unit, WSAttachmentKeys.WEBSERVICES_METADATA_KEY);
+        final boolean hasJBossWebMD = getJBossWebMetaData(unit) != null;
+
+        if (hasWebservicesMD && hasJBossWebMD) {
+            return getJaxrpcServlets(unit).size() > 0;
+        }
+
+        return false;
+    }
+
+    /**
+     * Returns true if JAXWS EJB deployment is detected.
+     *
+     * @param unit deployment unit
+     * @return true if JAXWS EJB, false otherwise
+     */
+    public static boolean isJaxwsEjbDeployment(final DeploymentUnit unit) {
+        return hasAttachment(unit, WSAttachmentKeys.WEBSERVICE_DEPLOYMENT_KEY);
+    }
+
+    /**
+     * Returns true if JAXWS JSE deployment is detected.
+     *
+     * @param unit deployment unit
+     * @return true if JAXWS JSE, false otherwise
+     */
+    public static boolean isJaxwsJseDeployment(final DeploymentUnit unit) {
+        final boolean hasWarMetaData = hasAttachment(unit, WarMetaData.ATTACHMENT_KEY);
+        if (hasWarMetaData) {
+            //once the deployment is a WAR, the endpoint(s) can be on either http (servlet) transport or jms transport
+            return getJaxwsServlets(unit).size() > 0 || hasAttachment(unit, WSAttachmentKeys.JMS_ENDPOINT_METADATA_KEY);
+        } else {
+            //otherwise the (JAR) deployment can be a jaxws_jse one if there're jms transport endpoints only (no ejb3)
+            return !hasAttachment(unit, WSAttachmentKeys.WEBSERVICE_DEPLOYMENT_KEY) &&
+                    hasAttachment(unit, WSAttachmentKeys.JMS_ENDPOINT_METADATA_KEY);
+        }
+    }
+
 }

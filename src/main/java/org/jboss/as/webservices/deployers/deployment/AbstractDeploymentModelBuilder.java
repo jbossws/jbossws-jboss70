@@ -21,6 +21,8 @@
  */
 package org.jboss.as.webservices.deployers.deployment;
 
+import static org.jboss.as.webservices.util.WSAttachmentKeys.DEPLOYMENT_KEY;
+
 import java.io.IOException;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -33,7 +35,6 @@ import org.jboss.as.server.deployment.DeploymentUnit;
 import org.jboss.as.server.deployment.DeploymentUnitProcessingException;
 import org.jboss.as.server.deployment.module.ResourceRoot;
 import org.jboss.as.webservices.util.ASHelper;
-import org.jboss.as.webservices.util.WSAttachmentKeys;
 import org.jboss.as.webservices.util.VirtualFileAdaptor;
 import org.jboss.logging.Logger;
 import org.jboss.modules.Module;
@@ -42,9 +43,10 @@ import org.jboss.wsf.spi.SPIProvider;
 import org.jboss.wsf.spi.SPIProviderResolver;
 import org.jboss.wsf.spi.deployment.ArchiveDeployment;
 import org.jboss.wsf.spi.deployment.Deployment;
-import org.jboss.wsf.spi.deployment.Deployment.DeploymentType;
+import org.jboss.wsf.spi.deployment.DeploymentType;
 import org.jboss.wsf.spi.deployment.DeploymentModelFactory;
 import org.jboss.wsf.spi.deployment.Endpoint;
+import org.jboss.wsf.spi.deployment.EndpointType;
 import org.jboss.wsf.spi.deployment.UnifiedVirtualFile;
 
 /**
@@ -62,16 +64,24 @@ abstract class AbstractDeploymentModelBuilder implements DeploymentModelBuilder 
 
     /** Deployment model factory. */
     private final DeploymentModelFactory deploymentModelFactory;
+    
+    /** Deployment type this builder creates. */
+    private final DeploymentType deploymentType;
+    
+    /** Endpoint type this builder creates. */
+    private final EndpointType endpointType;
 
     /**
      * Constructor.
      */
-    protected AbstractDeploymentModelBuilder() {
+    protected AbstractDeploymentModelBuilder(final DeploymentType deploymentType, final EndpointType endpointType) {
         super();
 
         // deployment factory
         final SPIProvider spiProvider = SPIProviderResolver.getInstance().getProvider();
         this.deploymentModelFactory = spiProvider.getSPI(DeploymentModelFactory.class);
+        this.deploymentType = deploymentType;
+        this.endpointType = endpointType;
     }
 
     /**
@@ -80,17 +90,23 @@ abstract class AbstractDeploymentModelBuilder implements DeploymentModelBuilder 
      * @param unit deployment unit
      */
     public final void newDeploymentModel(final DeploymentUnit unit) {
-        final ArchiveDeployment dep;
-        try {
-            dep = this.newDeployment(unit);
-        } catch (DeploymentUnitProcessingException e) {
-            throw new RuntimeException(e);
-        }
+       final ArchiveDeployment dep;
+       if (unit.hasAttachment(DEPLOYMENT_KEY))
+       {
+          dep = (ArchiveDeployment) unit.getAttachment(DEPLOYMENT_KEY);
+       }
+       else
+       {
+          try {
+             dep = this.newDeployment(unit);
+          } catch (DeploymentUnitProcessingException e) {
+             throw new RuntimeException(e);
+          }
+          dep.addAttachment(DeploymentUnit.class, unit);
+          unit.putAttachment(DEPLOYMENT_KEY, dep);
+       }
 
-        this.build(dep, unit);
-
-        dep.addAttachment(DeploymentUnit.class, unit);
-        unit.putAttachment(WSAttachmentKeys.DEPLOYMENT_KEY, dep);
+       this.build(dep, unit);
     }
 
     /**
@@ -120,6 +136,7 @@ abstract class AbstractDeploymentModelBuilder implements DeploymentModelBuilder 
 
         final Endpoint endpoint = this.deploymentModelFactory.newHttpEndpoint(endpointClass);
         endpoint.setShortName(endpointName);
+        endpoint.setType(endpointType);
         dep.getService().addEndpoint(endpoint);
 
         return endpoint;
@@ -145,6 +162,7 @@ abstract class AbstractDeploymentModelBuilder implements DeploymentModelBuilder 
         final Endpoint endpoint = this.deploymentModelFactory.newJMSEndpoint(endpointClass);
         endpoint.setAddress(soapAddress);
         endpoint.setShortName(endpointName);
+        endpoint.setType(endpointType);
         dep.getService().addEndpoint(endpoint);
 
         return endpoint;
@@ -195,7 +213,6 @@ abstract class AbstractDeploymentModelBuilder implements DeploymentModelBuilder 
 
         dep.setRootFile(new VirtualFileAdaptor(root));
         dep.setRuntimeClassLoader(classLoader);
-        final DeploymentType deploymentType = ASHelper.getRequiredAttachment(unit, WSAttachmentKeys.DEPLOYMENT_TYPE_KEY);
         dep.setType(deploymentType);
 
         return dep;

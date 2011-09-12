@@ -25,9 +25,9 @@
 
   <!-- Properties -->
   <properties>
-    <jbossws.api.version>1.0.0.Beta1</jbossws.api.version>
-    <jbossws.spi.version>2.0.0.Beta5</jbossws.spi.version>
-    <jbossws.common.version>2.0.0.Beta4</jbossws.common.version>
+    <jbossws.api.version>1.0.0-SNAPSHOT</jbossws.api.version>
+    <jbossws.spi.version>2.0.0-SNAPSHOT</jbossws.spi.version>
+    <jbossws.common.version>2.0.0-SNAPSHOT</jbossws.common.version>
     <jboss.msc.version>1.0.0.GA</jboss.msc.version>
     <jboss.version>7.0.0.Final</jboss.version>
   </properties>
