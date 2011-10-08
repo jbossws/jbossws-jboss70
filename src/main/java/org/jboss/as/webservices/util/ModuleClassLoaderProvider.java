@@ -61,4 +61,10 @@ public class ModuleClassLoaderProvider extends ClassLoaderProvider {
         ClassLoaderProvider.setDefaultProvider(new ModuleClassLoaderProvider());
     }
 
+   @Override
+   public ClassLoader getServerJAXRPCIntegrationClassLoader()
+   {
+      throw new RuntimeException("JAXRPC Integration not available on AS 7.0.x");
+   }
+
 }
