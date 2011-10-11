@@ -36,7 +36,7 @@ import org.jboss.wsf.spi.deployment.ServletDelegateFactory;
 public class ServletDelegateFactoryImpl implements ServletDelegateFactory {
 
     @Override
-    public ServletDelegate newServletDelegate(String servletClassName) {
+    public ServletDelegate newServletDelegate(String servletClassName, boolean isJaxWs) {
         try {
             ClassLoader classLoader = ClassLoaderProvider.getDefaultProvider().getServerIntegrationClassLoader();
             Class<?> clazz = classLoader.loadClass(servletClassName);
