@@ -82,5 +82,39 @@
       <scope>provided</scope>
     </dependency>
   </dependencies>
+  
+  <!-- plugins -->
+  <build>
+    <plugins>
+      <plugin>
+        <artifactId>maven-jar-plugin</artifactId>
+        <executions>
+           <execution>
+            <id>default-jar</id>
+            <goals><goal>jar</goal></goals>
+            <phase>package</phase>
+            <configuration>
+              <excludes>
+                <exclude>**/tests/**</exclude>
+                <exclude>**/org.jboss.wsf.spi.deployer.Deployer</exclude>
+              </excludes>
+            </configuration>
+          </execution>
+          <execution>
+            <id>tests-integration</id>
+            <goals><goal>jar</goal></goals>
+            <phase>package</phase>
+            <configuration>
+              <classifier>tests-integration</classifier>
+              <includes>
+                <include>**/tests/**</include>
+                <include>**/org.jboss.wsf.spi.deployer.Deployer</include>
+              </includes>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
 
 </project>
