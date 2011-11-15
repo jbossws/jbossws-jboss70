@@ -22,7 +22,7 @@
 
 package org.jboss.as.webservices.dmr;
 
-import org.jboss.as.ee.component.EEResourceReferenceProcessorRegistry;
+import org.jboss.as.ee.component.deployers.EEResourceReferenceProcessorRegistry;
 import org.jboss.as.server.DeploymentProcessorTarget;
 import org.jboss.as.server.deployment.Phase;
 import org.jboss.as.webservices.deployers.AspectDeploymentProcessor;
