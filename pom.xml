@@ -2,10 +2,10 @@
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
-  <name>JBoss Web Services - Container JBoss-7.0.0.Final</name>
+  <name>JBoss Web Services - Container JBoss-7.0.1.Final</name>
   <groupId>org.jboss.ws</groupId>
-  <artifactId>jbossws-jboss700</artifactId>
-  <description>JBossWS Container integration for JBoss AS 7.0.0.Final</description>
+  <artifactId>jbossws-jboss701</artifactId>
+  <description>JBossWS Container integration for JBoss AS 7.0.1.Final</description>
 
   <version>4.0.0-SNAPSHOT</version>
 
@@ -18,9 +18,9 @@
 
   <!-- Source Control Management -->
   <scm>
-    <connection>scm:svn:http://anonsvn.jboss.org/repos/jbossws/container/jboss70/branches/jbossws-jboss700</connection>
-    <developerConnection>scm:svn:https://svn.jboss.org/repos/jbossws/container/jboss70/branches/jbossws-jboss700</developerConnection>
-    <url>http://fisheye.jboss.com/viewrep/JBossWS/container/jboss70/branches/jbossws-jboss700</url>
+    <connection>scm:svn:http://anonsvn.jboss.org/repos/jbossws/container/jboss70/branches/jbossws-jboss701</connection>
+    <developerConnection>scm:svn:https://svn.jboss.org/repos/jbossws/container/jboss70/branches/jbossws-jboss701</developerConnection>
+    <url>http://fisheye.jboss.com/viewrep/JBossWS/container/jboss70/branches/jbossws-jboss701</url>
   </scm>
 
   <!-- Properties -->
@@ -29,7 +29,7 @@
     <jbossws.spi.version>2.0.0-SNAPSHOT</jbossws.spi.version>
     <jbossws.common.version>2.0.0-SNAPSHOT</jbossws.common.version>
     <jboss.msc.version>1.0.0.GA</jboss.msc.version>
-    <jboss.version>7.0.0.Final</jboss.version>
+    <jboss.version>7.0.1.Final</jboss.version>
   </properties>
 
   <dependencies>
