@@ -36,6 +36,7 @@ import org.jboss.as.server.deployment.DeploymentUnitProcessingException;
 import org.jboss.as.server.deployment.module.ResourceRoot;
 import org.jboss.as.webservices.util.ASHelper;
 import org.jboss.as.webservices.util.VirtualFileAdaptor;
+import org.jboss.as.webservices.util.WSAttachmentKeys;
 import org.jboss.logging.Logger;
 import org.jboss.modules.Module;
 import org.jboss.vfs.VirtualFile;
@@ -48,6 +49,7 @@ import org.jboss.wsf.spi.deployment.DeploymentModelFactory;
 import org.jboss.wsf.spi.deployment.Endpoint;
 import org.jboss.wsf.spi.deployment.EndpointType;
 import org.jboss.wsf.spi.deployment.UnifiedVirtualFile;
+import org.jboss.wsf.spi.metadata.webservices.WebservicesMetaData;
 
 /**
  * Base class for all deployment model builders.
@@ -104,6 +106,10 @@ abstract class AbstractDeploymentModelBuilder implements DeploymentModelBuilder 
           }
           dep.addAttachment(DeploymentUnit.class, unit);
           unit.putAttachment(DEPLOYMENT_KEY, dep);
+       }
+       final WebservicesMetaData wsMetaData = ASHelper.getOptionalAttachment(unit, WSAttachmentKeys.WEBSERVICES_METADATA_KEY);
+       if (wsMetaData != null) {
+           dep.addAttachment(WebservicesMetaData.class, wsMetaData);
        }
 
        this.build(dep, unit);
