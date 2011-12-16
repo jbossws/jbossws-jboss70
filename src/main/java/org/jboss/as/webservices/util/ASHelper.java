@@ -43,6 +43,8 @@ import org.jboss.metadata.common.jboss.WebserviceDescriptionsMetaData;
 import org.jboss.metadata.web.jboss.JBossServletMetaData;
 import org.jboss.metadata.web.jboss.JBossWebMetaData;
 import org.jboss.metadata.web.spec.ServletMetaData;
+import org.jboss.msc.service.ServiceController;
+import org.jboss.msc.service.ServiceName;
 import org.jboss.as.webservices.metadata.WebServiceDeclaration;
 import org.jboss.as.webservices.metadata.WebServiceDeployment;
 
@@ -349,6 +351,12 @@ public final class ASHelper {
             return !hasAttachment(unit, WSAttachmentKeys.WEBSERVICE_DEPLOYMENT_KEY) &&
                     hasAttachment(unit, WSAttachmentKeys.JMS_ENDPOINT_METADATA_KEY);
         }
+    }
+
+    @SuppressWarnings("unchecked")
+    public static <T> T getMSCService(final ServiceName serviceName, final Class<T> clazz) {
+        ServiceController<T> service = (ServiceController<T>)WSServices.getContainerRegistry().getService(serviceName);
+        return service != null ? service.getValue() : null;
     }
 
 }

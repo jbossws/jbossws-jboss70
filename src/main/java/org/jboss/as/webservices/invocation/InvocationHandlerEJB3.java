@@ -36,13 +36,12 @@ import org.jboss.as.webservices.util.ASHelper;
 import org.jboss.invocation.InterceptorContext;
 import org.jboss.ws.common.injection.ThreadLocalAwareWebServiceContext;
 import org.jboss.ws.common.invocation.AbstractInvocationHandler;
+import org.jboss.msc.service.ServiceName;
 import org.jboss.wsf.spi.SPIProvider;
 import org.jboss.wsf.spi.SPIProviderResolver;
 import org.jboss.wsf.spi.deployment.Endpoint;
 import org.jboss.wsf.spi.invocation.Invocation;
 import org.jboss.wsf.spi.invocation.InvocationContext;
-import org.jboss.wsf.spi.ioc.IoCContainerProxy;
-import org.jboss.wsf.spi.ioc.IoCContainerProxyFactory;
 
 /**
  * Handles invocations on EJB3 endpoints.
@@ -53,23 +52,11 @@ final class InvocationHandlerEJB3 extends AbstractInvocationHandler {
    /** EJB3 JNDI context. */
    private static final String EJB3_JNDI_PREFIX = "java:env/";
 
-   /** MC kernel controller. */
-   private final IoCContainerProxy iocContainer;
-
    /** EJB3 container name. */
    private String ejbName;
 
    /** EJB3 container. */
    private volatile ComponentViewInstance ejbComponentViewInstance;
-
-   /**
-    * Constructor.
-    */
-   InvocationHandlerEJB3() {
-      final SPIProvider spiProvider = SPIProviderResolver.getInstance().getProvider();
-      final IoCContainerProxyFactory iocContainerFactory = spiProvider.getSPI(IoCContainerProxyFactory.class);
-      iocContainer = iocContainerFactory.getContainer();
-   }
 
    /**
     * Initializes EJB3 container name.
@@ -93,7 +80,7 @@ final class InvocationHandlerEJB3 extends AbstractInvocationHandler {
       if (ejbComponentViewInstance == null) {
          synchronized(this) {
             if (ejbComponentViewInstance == null) {
-               final ComponentView ejbView = iocContainer.getBean(ejbName, ComponentView.class);
+               final ComponentView ejbView = ASHelper.getMSCService(ServiceName.parse(ejbName), ComponentView.class);
                if (ejbView == null) {
                   throw new WebServiceException("Cannot find ejb: " + ejbName);
                }
@@ -148,12 +135,6 @@ final class InvocationHandlerEJB3 extends AbstractInvocationHandler {
        }
 
        throw new IllegalStateException();
-   }
-
-   public Context getJNDIContext(final Endpoint ep) throws NamingException {
-      return null; // TODO: implement
-//      final EJBContainer ejb3Container = (EJBContainer) getComponentViewInstance();
-//      return (Context) ejb3Container.getEnc().lookup(EJB3_JNDI_PREFIX);
    }
 
    /**
