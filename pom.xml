@@ -7,7 +7,7 @@
   <artifactId>jbossws-jboss702</artifactId>
   <description>JBossWS Container integration for JBoss AS 7.0.2.Final</description>
 
-  <version>4.0.0-SNAPSHOT</version>
+  <version>4.0.1-SNAPSHOT</version>
 
   <!-- Parent -->
   <parent>
@@ -25,9 +25,9 @@
 
   <!-- Properties -->
   <properties>
-    <jbossws.api.version>1.0.0-SNAPSHOT</jbossws.api.version>
-    <jbossws.spi.version>2.0.0-SNAPSHOT</jbossws.spi.version>
-    <jbossws.common.version>2.0.0-SNAPSHOT</jbossws.common.version>
+    <jbossws.api.version>1.0.1-SNAPSHOT</jbossws.api.version>
+    <jbossws.spi.version>2.0.1-SNAPSHOT</jbossws.spi.version>
+    <jbossws.common.version>2.0.1-SNAPSHOT</jbossws.common.version>
     <jboss.msc.version>1.0.1.GA</jboss.msc.version>
     <jboss.version>7.0.2.Final</jboss.version>
   </properties>
