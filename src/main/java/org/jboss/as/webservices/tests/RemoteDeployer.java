@@ -1,6 +1,6 @@
 /*
  * JBoss, Home of Professional Open Source.
- * Copyright 2011, Red Hat, Inc., and individual contributors
+ * Copyright 2012, Red Hat, Inc., and individual contributors
  * as indicated by the @author tags. See the copyright.txt file in the
  * distribution for a full listing of individual contributors.
  *
@@ -61,6 +61,8 @@ public final class RemoteDeployer implements Deployer {
     private static final int PORT = 9999;
     private final Map<URL, String> url2Id = new HashMap<URL, String>();
     private final InetAddress address = InetAddress.getByName("127.0.0.1");
+    private final Map<String, Integer> securityDomainUsers = new HashMap<String, Integer>(1);
+    private final Map<String, Integer> archiveCounters = new HashMap<String, Integer>();
 
     private ServerDeploymentManager deploymentManager;
 
@@ -70,25 +72,47 @@ public final class RemoteDeployer implements Deployer {
 
     @Override
     public void deploy(final URL archiveURL) throws Exception {
-        final DeploymentPlanBuilder builder = deploymentManager.newDeploymentPlan().add(archiveURL).andDeploy();
-        final DeploymentPlan plan = builder.build();
-        final DeploymentAction deployAction = builder.getLastAction();
-        final String uniqueId = deployAction.getDeploymentUnitUniqueName();
-        executeDeploymentPlan(plan, deployAction);
-        url2Id.put(archiveURL, uniqueId);
+        synchronized (archiveCounters) {
+            String k = archiveURL.toString();
+            if (archiveCounters.containsKey(k)) {
+                int count = archiveCounters.get(k);
+                archiveCounters.put(k, (count + 1));
+                return;
+            } else {
+                archiveCounters.put(k, 1);
+            }
+
+            final DeploymentPlanBuilder builder = deploymentManager.newDeploymentPlan().add(archiveURL).andDeploy();
+            final DeploymentPlan plan = builder.build();
+            final DeploymentAction deployAction = builder.getLastAction();
+            final String uniqueId = deployAction.getDeploymentUnitUniqueName();
+            executeDeploymentPlan(plan, deployAction);
+            url2Id.put(archiveURL, uniqueId);
+        }
     }
 
     @Override
     public void undeploy(final URL archiveURL) throws Exception {
-        final DeploymentPlanBuilder builder = deploymentManager.newDeploymentPlan();
-        final String uniqueName = url2Id.get(archiveURL);
-        if (uniqueName != null) {
-            final DeploymentPlan plan = builder.undeploy(uniqueName).remove(uniqueName).build();
-            final DeploymentAction deployAction = builder.getLastAction();
-            try {
-                executeDeploymentPlan(plan, deployAction);
-            } finally {
-                url2Id.remove(archiveURL);
+        synchronized (archiveCounters) {
+            String k = archiveURL.toString();
+            int count = archiveCounters.get(k);
+            if (count > 1) {
+                archiveCounters.put(k, (count - 1));
+                return;
+            } else {
+                archiveCounters.remove(k);
+            }
+
+            final DeploymentPlanBuilder builder = deploymentManager.newDeploymentPlan();
+            final String uniqueName = url2Id.get(archiveURL);
+            if (uniqueName != null) {
+                final DeploymentPlan plan = builder.undeploy(uniqueName).remove(uniqueName).build();
+                final DeploymentAction deployAction = builder.getLastAction();
+                try {
+                    executeDeploymentPlan(plan, deployAction);
+                } finally {
+                    url2Id.remove(archiveURL);
+                }
             }
         }
     }
@@ -114,16 +138,36 @@ public final class RemoteDeployer implements Deployer {
 
     @Override
     public void addSecurityDomain(String name, Map<String, String> authenticationOptions) throws Exception {
-        ModelControllerClient client = ModelControllerClient.Factory.create(address, PORT);
-        ModelNode result = createSecurityDomain(client, name, authenticationOptions);
-        checkResult(result);
+        synchronized (securityDomainUsers) {
+            if (securityDomainUsers.containsKey(name)) {
+                int count = securityDomainUsers.get(name);
+                securityDomainUsers.put(name, (count + 1));
+                return;
+            } else {
+                securityDomainUsers.put(name, 1);
+            }
+
+            ModelControllerClient client = ModelControllerClient.Factory.create(address, PORT);
+            ModelNode result = createSecurityDomain(client, name, authenticationOptions);
+            checkResult(result);
+        }
     }
 
     @Override
     public void removeSecurityDomain(String name) throws Exception {
-        ModelControllerClient client = ModelControllerClient.Factory.create(address, PORT);
-        ModelNode result = removeSecurityDomain(client, name);
-        checkResult(result);
+        synchronized (securityDomainUsers) {
+            int count = securityDomainUsers.get(name);
+            if (count > 1) {
+                securityDomainUsers.put(name, (count - 1));
+                return;
+            } else {
+                securityDomainUsers.remove(name);
+            }
+
+            ModelControllerClient client = ModelControllerClient.Factory.create(address, PORT);
+            ModelNode result = removeSecurityDomain(client, name);
+            checkResult(result);
+        }
     }
 
     private static ModelNode createSecurityDomain(ModelControllerClient client, String name, Map<String, String> authenticationOptions) throws IOException {
