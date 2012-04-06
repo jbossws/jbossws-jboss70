@@ -81,6 +81,24 @@
       <version>${jboss.version}</version>
       <scope>provided</scope>
     </dependency>
+    
+    <!-- AS specific transitive dependencies for JBossWS testsuite execution -->
+    <dependency>
+      <groupId>org.jboss.as</groupId>
+      <artifactId>jboss-as-controller-client</artifactId>
+      <version>${jboss.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.jboss.as</groupId>
+      <artifactId>jboss-as-security</artifactId>
+      <version>${jboss.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.jboss.marshalling</groupId>
+      <artifactId>jboss-marshalling-river</artifactId>
+      <version>1.3.0.GA</version>
+    </dependency>
+    
   </dependencies>
   
   <!-- plugins -->
